@@ -143,3 +143,52 @@ def build_prompt(question, search_results):
 
 prompt = build_prompt(question, search_results)
 print(prompt)
+
+response = client.chat.completions.create(
+    model="llama-3.3-70b-versatile", messages=[{"role": "user", "content": prompt}]
+)
+
+print(response)
+print(response.usage)
+
+# price
+input_price = 0.75 / 1_000_000
+output_price = 4.50 / 1_000_000
+
+cost = (
+    response.usage.prompt_tokens * input_price
+    + response.usage.prompt_tokens * output_price
+)
+
+print(cost)
+
+message_history = [
+    {"role": "developer", "content": INSTRUCTIONS},
+    {"role": "user", "content": prompt},
+]
+
+response = client.chat.completions.create(
+    model="llama-3.3-70b-versatile", messages=message_history
+)
+
+
+def llm(instructions, user_prompt, model="llama-3.3-70b-versatile"):
+    message_history = [
+        {"role": "developer", "content": instructions},
+        {"role": "user", "content": user_prompt},
+    ]
+
+    response = client.chat.completions.create(model=model, messages=message_history)
+
+    return response.choices[0].message.content
+
+
+def rag(query, model="llama-3.3-70b-versatile"):
+    search_results = search(query)
+    prompt = build_prompt(query, search_results)
+    answer = llm(INSTRUCTIONS, prompt, model=model)
+    return answer
+
+
+answer = rag(question)
+print(answer)
