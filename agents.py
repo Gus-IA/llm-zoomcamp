@@ -85,3 +85,97 @@ response = client.chat.completions.create(
 )
 
 print(response.choices[0].message.content)
+
+instructions = """
+You're a course teaching assistant.
+You're given a question from a course student and your task is to answer it.
+
+If you want to look up information, use the search function. 
+Use as many keywords from the user question as possible when making first requests.
+
+Make multiple searches.
+
+Try to expand your search by using new keywords
+based on the results you get from the search.
+
+At the end, ask if there are other areas that the user wants to explore.
+""".strip()
+
+response = client.chat.completions.create(
+    model="llama-3.1 c-70b-versatile",
+    messages=messages,
+    tools=[search_tool],
+)
+
+
+def make_call(call):
+    args = json.loads(call.arguments)
+
+    if call.name == "search":
+        result = search(**args)
+
+    result_json = json.dumps(result, indent=2)
+
+    return {
+        "type": "function_call_output",
+        "call_id": call.call_id,
+        "output": result_json,
+    }
+
+
+messages.extend(response.output)
+
+for item in response.output:
+
+    if item.type == "funcion_call":
+        print("function_call:", item.name, item.arguments)
+        call_output = make_call(item)
+        messages.append(call_output)
+
+    elif item.type == "message":
+        print("ASSISTANT:")
+        print(item.content[0].text)
+
+
+def agent_loop(instructions, question, model="llama-3.1 c-70b-versatile") -> str:
+    messages = [
+        {"role": "developer", "content": instructions},
+        {"role": "user", "content": question},
+    ]
+
+    it = 1
+
+    while True:
+        print(f"iteration #{it}...")
+        has_function_calls = False
+
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            tools=[search_tool],
+        )
+
+        messages.extend(response.output)
+
+        for item in response.output:
+            if item.type == "function_call":
+                print("function_call:", item.name, item.arguments)
+                call_output = make_call(item)
+                messages.append(call_output)
+                has_function_calls = True
+
+            elif item.type == "message":
+                print("ASSISTANT:")
+                last_answer = item.content[0].text
+                print(item.content[0].text)
+
+        it = it + 1
+        if has_function_calls == False:
+            break
+
+    return last_answer
+
+
+question = "what's queen gambit?"
+
+result = agent_loop(instructions, question)
