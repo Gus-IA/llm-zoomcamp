@@ -179,3 +179,48 @@ def agent_loop(instructions, question, model="llama-3.1 c-70b-versatile") -> str
 question = "what's queen gambit?"
 
 result = agent_loop(instructions, question)
+
+
+from toyaikit.llm import OpenAIClient
+from toyaikit.tools import Tools
+from toyaikit.chat import IPythonChatInterface
+from toyaikit.chat.runners import OpenAIResponsesRunner, DisplayingRunnerCallback
+
+agent_tools = Tools()
+agent_tools.add_tool(search, search_tool)
+
+
+def search(query: str) -> dict[str, str]:
+    """
+    Search the FAQ database for entries matching the given query.
+    """
+    return index.search(
+        query,
+        num_results=5,
+        boost_dict={"question": 3.0, "section": 0.5},
+        filter_dict={"course": "llm-zoomcamp"},
+    )
+
+
+agent_tools = Tools()
+agent_tools.add_tool(search, search_tool)
+
+chat_interface = IPythonChatInterface()
+callback = DisplayingRunnerCallback(chat_interface)
+
+response = client.chat.completions.create(
+    model="llama-3.1-70b-versatile", messages=messages, tools=[search_tool]
+)
+
+result = response.loop(
+    prompt="How do I run Ollama locally?",
+    callback=callback,
+)
+
+result2 = response.loop(
+    prompt="How do I run a different model?",
+    previous_messages=result.all_messages,
+    callback=callback,
+)
+
+response.run()
