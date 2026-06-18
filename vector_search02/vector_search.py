@@ -60,4 +60,41 @@ for i in tqdm(range(0, len(texts), batch_size)):
     batch_vectors = model.encode(batch)
     vectors.extend(batch_vectors)
 
-len(vectors)
+print(len(vectors))
+
+scores = []
+
+for i in range(len(vectors)):
+    score = v1.dot(vectors[i])
+    scores.append(score)
+
+
+import numpy as np
+
+X = np.array(vectors)
+print(X)
+
+scores = X.dot(v1)
+print(scores)
+
+idx = np.argmax(scores)
+idx, scores[idx]
+print(idx)
+
+
+print(documents[553])
+
+top5 = np.argsort(scores)[-5:]
+print(top5)
+
+print(scores[top5])
+
+
+for idx in top5:
+    print(scores[idx])
+    print(documents[idx])
+    print()
+
+
+top5negative = np.argsort(-scores)[:5]
+print(top5negative)
