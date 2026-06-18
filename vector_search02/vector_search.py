@@ -24,3 +24,40 @@ v2 = model.encode(q2)
 v2.dot(dv)
 
 print(v2.dot(dv))
+
+import requests
+
+url = "https://raw.githubusercontent.com/DataTalksClub/llm-zoomcamp/main/01-agentic-rag/code/ingest.py"
+
+response = requests.get(url)
+response.raise_for_status()
+
+with open("ingest.py", "wb") as f:
+    f.write(response.content)
+
+print("Archivo descargado correctamente")
+
+
+from ingest import load_faq_data
+
+documents = load_faq_data()
+
+print(documents[10])
+
+texts = []
+
+for doc in documents:
+    text = doc["question"] + " " + doc["answer"]
+    texts.append(text)
+
+from tqdm.auto import tqdm
+
+batch_size = 50
+vectors = []
+
+for i in tqdm(range(0, len(texts), batch_size)):
+    batch = texts[i : i + batch_size]
+    batch_vectors = model.encode(batch)
+    vectors.extend(batch_vectors)
+
+len(vectors)
