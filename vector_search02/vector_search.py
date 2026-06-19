@@ -98,3 +98,11 @@ for idx in top5:
 
 top5negative = np.argsort(-scores)[:5]
 print(top5negative)
+
+
+from minsearch import VectorSearch
+
+vindex = VectorSearch(keyword_fields=["course"])
+vindex.fit(X, documents)
+
+print(vindex.search(v1, num_results=5, filter_dict={"course": "llm-zoomcamp"}))
