@@ -106,3 +106,59 @@ vindex = VectorSearch(keyword_fields=["course"])
 vindex.fit(X, documents)
 
 print(vindex.search(v1, num_results=5, filter_dict={"course": "llm-zoomcamp"}))
+
+
+url = "https://raw.githubusercontent.com/Gus-IA/llm-zoomcamp/refs/heads/main/rag01/rag_helper.py"
+
+response = requests.get(url)
+response.raise_for_status()
+
+with open("ingest.py", "wb") as f:
+    f.write(response.content)
+
+print("Archivo descargado correctamente")
+
+from dotenv import load_dotenv
+from groq import Groq
+import os
+
+load_dotenv()
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+
+from ingest import load_faq_data, build_index
+
+documents = load_faq_data()
+index = build_index(documents)
+
+from rag_helper import RAGBase
+
+groq_client = Groq()
+
+assistant = RAGBase(index=index, llm_client=groq_client)
+
+query = "I just found out about the program, can I still sign up?"
+assistant.rag(query)
+
+assistant.search(query)
+
+
+class RAGVector(RAGBase):
+
+    def __init__(self, embedder, **kwargs):
+        super().__init__(**kwargs)
+        self.embedder = embedder
+
+    def search(self, query, num_results=5):
+        query_vector = self.embedder.encode(query)
+        filter_dict = {"course": self.course}
+
+        return self.index.search(
+            query_vector, num_results=num_results, filter_dict=filter_dict
+        )
+
+
+vector_assistant = RAGVector(
+    embedder=model,
+    index=vindex,
+    llm_client=groq_client,
+)

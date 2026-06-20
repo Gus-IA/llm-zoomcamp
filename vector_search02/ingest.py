@@ -1,30 +1,79 @@
-import requests
-from minsearch import Index
+INSTRUCTIONS = """
+Your task is to answer questions from the course participants
+based on the provided context.
+
+Use the context to find relevant information and provide accurate
+answers. If the answer is not found in the context,
+respond with "I don't know."
+"""
+
+PROMPT_TEMPLATE = """
+QUESTION: {question}
+
+CONTEXT:
+{context}
+""".strip()
 
 
-def load_faq_data():
-    docs_url = 'https://datatalks.club/faq/json/courses.json'
-    response = requests.get(docs_url)
-    courses_raw = response.json()
+class RAGBase:
 
-    documents = []
-    url_prefix = 'https://datatalks.club/faq'
+    def __init__(
+        self,
+        index,
+        llm_client,
+        instructions=INSTRUCTIONS,
+        prompt_template=PROMPT_TEMPLATE,
+        course="llm-zoomcamp",
+        model="llama-3.3-70b-versatile",
+    ):
+        self.index = index
+        self.llm_client = llm_client
+        self.instructions = instructions
+        self.course = course
+        self.prompt_template = prompt_template
+        self.model = model
 
-    for course in courses_raw:
-        course_url = f'{url_prefix}{course["path"]}'
-        course_response = requests.get(course_url)
-        course_response.raise_for_status()
-        course_data = course_response.json()
+    def search(self, query, num_results=5):
+        boost_dict = {"question": 3.0, "section": 0.5}
+        filter_dict = {"course": self.course}
 
-        documents.extend(course_data)
+        return self.index.search(
+            query,
+            num_results=num_results,
+            boost_dict=boost_dict,
+            filter_dict=filter_dict,
+        )
 
-    return documents
+    def build_context(self, search_results):
+        lines = []
 
+        for doc in search_results:
+            lines.append(doc["section"])
+            lines.append("Q: " + doc["question"])
+            lines.append("A: " + doc["answer"])
+            lines.append("")
 
-def build_index(documents):
-    index = Index(
-        text_fields=['question', 'section', 'answer'],
-        keyword_fields=['course']
-    )
-    index.fit(documents)
-    return index
+        return "\n".join(lines).strip()
+
+    def build_prompt(self, query, search_results):
+        context = self.build_context(search_results)
+        return self.prompt_template.format(question=query, context=context)
+
+    def llm(self, prompt):
+        messages = [
+            {"role": "system", "content": self.instructions},
+            {"role": "user", "content": prompt},
+        ]
+
+        response = self.llm_client.chat.completions.create(
+            model=self.model,
+            messages=messages,
+        )
+
+        return response.choices[0].message.content
+
+    def rag(self, query):
+        search_results = self.search(query)
+        prompt = self.build_prompt(query, search_results)
+        answer = self.llm(prompt)
+        return answer
