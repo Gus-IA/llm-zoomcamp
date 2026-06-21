@@ -162,3 +162,19 @@ vector_assistant = RAGVector(
     index=vindex,
     llm_client=groq_client,
 )
+
+
+from sqlitesearch import VectorSearchIndex
+
+vs_index = VectorSearchIndex(
+    keyword_fields=["course"], mode="ivf", db_path="faq_vectors2.db"
+)
+
+vs_index.fit(vectors, documents)
+
+query = "I just discovered the course. Can I still join it?"
+query_vector = model.encode(query)
+
+results = vs_index.search(query_vector, num_results=5)
+
+vs_index.close()

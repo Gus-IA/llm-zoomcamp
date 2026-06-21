@@ -1181,6 +1181,18 @@ wheels = [
 ]
 
 [[package]]
+name = "sqlitesearch"
+version = "0.1.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "numpy" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/b9/e7/081754e946c86db7aaaacdbc7f38e7a199049a2926b04d198c01fd88e730/sqlitesearch-0.1.1.tar.gz", hash = "sha256:375ad5c166621bb9f1ad7fc41449b50ca5c6f0c97b3764fea1d86d4b52777dc2", size = 262202, upload-time = "2026-06-18T11:56:01.108Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/94/80/2eea3d3318d805c53def995f909fb652a716a769635a1eb3725eb3c96176/sqlitesearch-0.1.1-py3-none-any.whl", hash = "sha256:0a56c78683e48bebb99ea59abc9ac9d96c86ae6b6b9ce0dd37487ff5105acef7", size = 40547, upload-time = "2026-06-18T11:55:59.841Z" },
+]
+
+[[package]]
 name = "sympy"
 version = "1.14.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1381,6 +1393,7 @@ dependencies = [
     { name = "requests" },
     { name = "sentence-transformers" },
     { name = "setuptools" },
+    { name = "sqlitesearch" },
 ]
 
 [package.metadata]
@@ -1393,4 +1406,5 @@ requires-dist = [
     { name = "requests", specifier = ">=2.34.2" },
     { name = "sentence-transformers", specifier = ">=5.6.0" },
     { name = "setuptools", specifier = ">=81.0.0" },
+    { name = "sqlitesearch", specifier = ">=0.1.1" },
 ]
