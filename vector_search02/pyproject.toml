@@ -8,6 +8,7 @@ dependencies = [
     "dotenv>=0.9.9",
     "groq>=1.4.0",
     "minsearch>=0.1.0",
+    "psycopg[binary]>=3.3.4",
     "pyarrow>=24.0.0",
     "ragbase>=0.1.0",
     "requests>=2.34.2",
