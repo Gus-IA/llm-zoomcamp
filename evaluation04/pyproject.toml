@@ -1,0 +1,14 @@
+[project]
+name = "evaluation04"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "dotenv>=0.9.9",
+    "groq>=1.5.0",
+    "minsearch>=0.1.1",
+    "pydantic>=2.13.4",
+    "requests>=2.34.2",
+    "tqdm>=4.68.3",
+]
