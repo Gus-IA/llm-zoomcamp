@@ -84,3 +84,52 @@ response = client.chat.completions.create(
 )
 
 print(response)
+
+
+import pandas as pd
+from evaluation_utils import llm_structured_retry
+
+
+def generate_ground_truth(doc):
+    user_prompt = json.dumps(doc)
+
+    out, usage = llm_structured_retry(
+        groq_client, data_gen_instructions, user_prompt, Questions
+    )
+
+    results = []
+
+    for q in out.questions:
+        results.append({"question": q, "document": doc["id"]})
+
+    return results, usage
+
+
+print(generate_ground_truth(doc))
+
+from tqdm.auto import tqdm
+
+ground_truth = []
+usages = []
+
+for doc in tqdm(documents[:5]):
+    records, usage = generate_ground_truth(doc)
+    ground_truth.extend(records)
+    usages.append(usage)
+
+
+from concurrent.futures import ThreadPoolExecutor
+from evaluation_utils import map_progress
+
+with ThreadPoolExecutor(max_workers=6) as pool:
+    results = map_progress(pool, documents, generate_ground_truth)
+
+
+ground_truth = []
+usages = []
+
+for records, usage in results:
+    ground_truth.extend(records)
+    usages.append(usage)
+
+len(ground_truth)
