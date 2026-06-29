@@ -111,3 +111,87 @@ def compute_relevance_total(ground_truth, search_function):
 
 relevance_total = compute_relevance_total(ground_truth_sample, text_search)
 print(relevance_total)
+
+
+example = [
+    [1, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 1, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+]
+
+
+cnt = 0
+
+for line in example:
+    if 1 in line:
+        cnt = cnt + 1
+
+print(cnt)
+print(cnt / len(example))
+
+
+def hit_rate(relevance):
+    cnt = 0
+
+    for line in relevance:
+        if 1 in line:
+            cnt = cnt + 1
+
+    return cnt / len(relevance)
+
+
+print(hit_rate(example))
+
+print(example[1])
+
+
+total_score = 0.0
+
+for line in example:
+    for rank in range(len(line)):
+        if line[rank] == 1:
+            total_score = total_score + 1 / (rank + 1)
+            break
+
+print(total_score)
+
+print(total_score / len(example))
+
+
+def mrr(relevance):
+    total_score = 0.0
+
+    for line in relevance:
+        for rank in range(len(line)):
+            if line[rank] == 1:
+                total_score = total_score + 1 / (rank + 1)
+                break
+
+    return total_score / len(relevance)
+
+
+print(mrr(example))
+
+
+def evaluate(ground_truth, search_function):
+    relevance_total = compute_relevance_total(ground_truth, search_function)
+
+    return {
+        "hit_rate": hit_rate(relevance_total),
+        "mrr": mrr(relevance_total),
+    }
+
+
+print(evaluate(ground_truth, text_search))
