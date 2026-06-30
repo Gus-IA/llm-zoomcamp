@@ -195,3 +195,50 @@ def evaluate(ground_truth, search_function):
 
 
 print(evaluate(ground_truth, text_search))
+
+
+def search_boost(query, question_boost):
+    boost_dict = {"question": question_boost, "section": 0.5}
+
+    return index.search(
+        query,
+        num_results=5,
+        boost_dict=boost_dict,
+    )
+
+
+for boost in [0.5, 1.0, 3.0, 5.0, 10.0]:
+    result = evaluate(
+        ground_truth, lambda query, boost=boost: search_boost(query, boost)
+    )
+    print(f"boost={boost}: {result}")
+
+results = []
+
+for question_boost in [1.0, 2.0, 5.0]:
+    for answer_boost in [1.0, 2.0, 4.0, 10.0]:
+        for section_boost in [0.1, 0.2, 0.5]:
+            print(
+                f"Evaluating question_boost={question_boost},"
+                f" answer_boost={answer_boost},"
+                f" section_boost={section_boost}..."
+            )
+            result = evaluate(
+                ground_truth,
+                lambda query, question_boost=question_boost, answer_boost=answer_boost, section_boost=section_boost: search_boosts(
+                    query, question_boost, answer_boost, section_boost
+                ),
+            )
+
+            results.append(
+                {
+                    "question": question_boost,
+                    "answer": answer_boost,
+                    "section": section_boost,
+                    "hit_rate": result["hit_rate"],
+                    "mrr": result["mrr"],
+                }
+            )
+
+df_results = pd.DataFrame(results)
+df_results.sort_values("mrr", ascending=False).head(10)
