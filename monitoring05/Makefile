@@ -20,3 +20,6 @@ postgres: network
 
 query:
 	uv run python db_query.py
+
+dashboard:
+	uv run streamlit run dashboard.py --server.port 8502
